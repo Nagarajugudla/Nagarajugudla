@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShopSwift — Demo Store</title>
+  <style>
+    :root{
+      --bg:#0f172a; /* slate-900 */
+      --panel:#111827; /* gray-900 */
+      --soft:#1f2937; /* gray-800 */
+      --muted:#94a3b8; /* slate-400 */
+      --text:#e5e7eb; /* gray-200 */
+      --primary:#22c55e; /* green-500 */
+      --primary-2:#16a34a; /* green-600 */
+      --accent:#60a5fa; /* blue-400 */
+      --danger:#ef4444; /* red-500 */
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; background:linear-gradient(180deg,var(--bg),#0b1225), var(--bg); color:var(--text);
+    }
+    header{
+      position:sticky; top:0; z-index:40; backdrop-filter: blur(10px);
+      background:linear-gradient(180deg, rgba(17,24,39,.9), rgba(17,24,39,.6)); border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .container{max-width:1200px; margin:0 auto; padding:16px;}
+    .row{display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+    .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.3px}
+    .badge{font-size:12px; background:rgba(96,165,250,.1); color:var(--accent); padding:4px 8px; border-radius:999px; border:1px solid rgba(96,165,250,.2)}
+    .search{flex:1; min-width:220px; display:flex; gap:8px}
+    input[type="search"], select, .btn{
+      height:42px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:var(--soft); color:var(--text); padding:0 14px; outline:none;
+    }
+    input[type="search"]{flex:1}
+    select{min-width:160px}
+    .btn{display:inline-flex; align-items:center; gap:8px; cursor:pointer; transition:transform .04s ease, background .2s}
+    .btn.primary{background:linear-gradient(180deg,var(--primary),var(--primary-2)); border-color:transparent; color:white; box-shadow:var(--shadow)}
+    .btn.ghost{background:rgba(255,255,255,.03)}
+    .btn:hover{transform:translateY(-1px)}
+    .cart-count{background:var(--danger); color:white; font-weight:700; padding:2px 8px; border-radius:999px; font-size:12px}
+
+    .hero{padding:28px 16px 4px}
+    .hero-inner{max-width:1200px;margin:0 auto; background: radial-gradient(1200px 400px at 20% -50%, rgba(96,165,250,.2), transparent), linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); border:1px solid rgba(255,255,255,.06); border-radius:var(--radius); padding:28px; display:flex; align-items:center; gap:24px; flex-wrap:wrap}
+    .hero h1{margin:0; font-size:28px}
+    .hero p{margin:6px 0 0; color:var(--muted)}
+
+    main{padding:16px}
+    .grid{max-width:1200px; margin:0 auto; display:grid; grid-template-columns: repeat(12, 1fr); gap:18px}
+    .card{grid-column: span 12; background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02)); border:1px solid rgba(255,255,255,.06); border-radius:var(--radius); overflow:hidden; box-shadow: var(--shadow); display:flex; flex-direction:column}
+    .thumb{aspect-ratio: 4/3; background:#0b1225; position:relative; overflow:hidden}
+    .thumb img{width:100%; height:100%; object-fit:cover; display:block}
+    .info{padding:14px}
+    .title{font-weight:700; margin:0 0 4px}
+    .desc{color:var(--muted); font-size:14px; min-height:40px}
+    .priceRow{display:flex; align-items:center; justify-content:space-between; margin-top:10px}
+    .price{font-size:18px; font-weight:800}
+    .chip{font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03)}
+
+    @media(min-width:540px){ .card{grid-column: span 6;} }
+    @media(min-width:900px){ .card{grid-column: span 4;} }
+
+    /* Cart Drawer */
+    .drawer{position:fixed; inset:0; display:none}
+    .drawer.open{display:block}
+    .dim{position:absolute; inset:0; background:rgba(0,0,0,.55)}
+    .panel{position:absolute; right:0; top:0; bottom:0; width:380px; max-width:100%; background:var(--panel); border-left:1px solid rgba(255,255,255,.08); box-shadow: var(--shadow); display:flex; flex-direction:column}
+    .panel header{position:static; background:transparent; border:0}
+    .panel .items{flex:1; overflow:auto; padding:16px; display:flex; flex-direction:column; gap:12px}
+    .line{display:flex; gap:12px; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:10px; align-items:center; background:rgba(255,255,255,.02)}
+    .line img{width:64px; height:64px; border-radius:10px; object-fit:cover}
+    .qty{display:inline-flex; align-items:center; gap:8px}
+    .qty button{width:26px; height:26px; border-radius:8px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.06); color:white; cursor:pointer}
+    .panel footer{border-top:1px solid rgba(255,255,255,.08); padding:16px; display:flex; flex-direction:column; gap:12px}
+    .muted{color:var(--muted); font-size:14px}
+    .empty{opacity:.7; text-align:center; padding:18px}
+
+    /* Footer */
+    footer.site{border-top:1px solid rgba(255,255,255,.06); margin-top:28px}
+    footer .container{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px}
+    footer a{color:var(--muted); text-decoration:none}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="row">
+        <div class="brand">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 3h2l3.6 7.59a2 2 0 0 0 1.8 1.18H17a2 2 0 0 0 2-1.5l1.2-4.5H7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="1.5" fill="currentColor"/><circle cx="17" cy="20" r="1.5" fill="currentColor"/></svg>
+          <span>ShopSwift</span>
+          <span class="badge">Demo</span>
+        </div>
+        <div class="search">
+          <input id="q" type="search" placeholder="Search products…" />
+          <select id="cat">
+            <option value="all">All Categories</option>
+            <option value="electronics">Electronics</option>
+            <option value="fashion">Fashion</option>
+            <option value="home">Home</option>
+            <option value="fitness">Fitness</option>
+          </select>
+          <select id="sort">
+            <option value="featured">Sort: Featured</option>
+            <option value="priceAsc">Price: Low → High</option>
+            <option value="priceDesc">Price: High → Low</option>
+            <option value="popular">Popularity</option>
+          </select>
+        </div>
+        <button class="btn ghost" id="cartBtn" aria-label="Open cart">
+          🛒 Cart <span class="cart-count" id="cartCount">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div style="flex:1 1 320px">
+        <h1>Discover, add to cart, repeat.</h1>
+        <p>Clean single‑file template for an online shop. Search, filter, sort, and a slick cart drawer — no frameworks needed.</p>
+      </div>
+      <div style="flex:0 0 280px; text-align:center">
+        <div style="font-size:48px">✨</div>
+        <div class="chip">100% front‑end demo</div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <footer class="site">
+    <div class="container">
+      <small class="muted">© <span id="year"></span> ShopSwift Demo. All product images are placeholders.</small>
+      <small><a href="#" onclick="alert('This is a front‑end demo — connect to a backend/Stripe to go live.')">Need a real checkout?</a></small>
+    </div>
+  </footer>
+
+  <!-- Cart Drawer -->
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="dim" id="dim"></div>
+    <div class="panel" role="dialog" aria-label="Shopping cart">
+      <header class="container">
+        <div class="row" style="justify-content:space-between">
+          <strong>🛒 Your Cart</strong>
+          <button class="btn ghost" id="closeCart">Close</button>
+        </div>
+      </header>
+      <div class="items" id="cartItems"></div>
+      <footer>
+        <div class="row" style="justify-content:space-between">
+          <span class="muted">Subtotal</span>
+          <strong id="subtotal">₹0</strong>
+        </div>
+        <button class="btn primary" id="checkout">Checkout</button>
+        <small class="muted">This is a demo. No payments are processed.</small>
+      </footer>
+    </div>
+  </aside>
+
+  <script>
+    // -------- Demo Data --------
+    const PRODUCTS = [
+      {id:1, name:"Wireless Headphones", price:2999, category:"electronics", img:"https://images.unsplash.com/photo-1518443895914-6ceef8a6f7d0?q=80&w=800&auto=format&fit=crop", desc:"Bluetooth 5.3, 40h battery, fast charge.", popular: 95},
+      {id:2, name:"Smartwatch Pro", price:4499, category:"electronics", img:"https://images.unsplash.com/photo-1518384401463-d3876163c195?q=80&w=800&auto=format&fit=crop", desc:"AMOLED display, SpO₂, GPS, 5ATM.", popular: 90},
+      {id:3, name:"Eco Cotton T‑Shirt", price:699, category:"fashion", img:"https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=800&auto=format&fit=crop", desc:"Super‑soft 180 GSM, unisex fit.", popular: 80},
+      {id:4, name:"Minimal Lamp", price:1599, category:"home", img:"https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=800&auto=format&fit=crop", desc:"Warm LED, touch dimmer, matte finish.", popular: 70},
+      {id:5, name:"Stainless Bottle 1L", price:899, category:"fitness", img:"https://images.unsplash.com/photo-1526401485004-2fda9f4e5ca6?q=80&w=800&auto=format&fit=crop", desc:"Keeps cold 24h / hot 12h.", popular: 76},
+      {id:6, name:"Yoga Mat Pro", price:1299, category:"fitness", img:"https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800&auto=format&fit=crop", desc:"Non‑slip, 6mm cushion, carry strap.", popular: 85},
+      {id:7, name:"Denim Jacket", price:2499, category:"fashion", img:"https://images.unsplash.com/photo-1520975916090-3105956dac38?q=80&w=800&auto=format&fit=crop", desc:"Classic fit, stone washed.", popular: 82},
+      {id:8, name:"Aroma Diffuser", price:1199, category:"home", img:"https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=800&auto=format&fit=crop", desc:"Ultrasonic, 7‑color ambient light.", popular: 60},
+      {id:9, name:"USB‑C GaN Charger 65W", price:1999, category:"electronics", img:"https://images.unsplash.com/photo-1588866154699-18d78a69bff0?q=80&w=800&auto=format&fit=crop", desc:"Fast‑charges phones & laptops.", popular: 88}
+    ];
+
+    // -------- State --------
+    const state = {
+      q: "",
+      cat: "all",
+      sort: "featured",
+      cart: JSON.parse(localStorage.getItem('cart')||'[]'),
+    };
+
+    const formatCurrency = (n) => new Intl.NumberFormat('en-IN',{style:'currency', currency:'INR', maximumFractionDigits:0}).format(n);
+
+    function saveCart(){ localStorage.setItem('cart', JSON.stringify(state.cart)); updateCartCount(); }
+    function updateCartCount(){ document.getElementById('cartCount').textContent = state.cart.reduce((a,i)=>a+i.qty,0); }
+
+    // -------- Render Products --------
+    function filterAndSort(){
+      let items = PRODUCTS.filter(p => {
+        const matchesQ = state.q === '' || (p.name+" "+p.desc).toLowerCase().includes(state.q);
+        const matchesCat = state.cat === 'all' || p.category === state.cat;
+        return matchesQ && matchesCat;
+      });
+      switch(state.sort){
+        case 'priceAsc': items.sort((a,b)=>a.price-b.price); break;
+        case 'priceDesc': items.sort((a,b)=>b.price-a.price); break;
+        case 'popular': items.sort((a,b)=>b.popular-a.popular); break;
+        default: /* featured */ items.sort((a,b)=>b.id-a.id);
+      }
+      return items;
+    }
+
+    function render(){
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+      const items = filterAndSort();
+      if(!items.length){
+        grid.innerHTML = `<div class="card" style="padding:24px; text-align:center">No products match your filters.</div>`;
+        return;
+      }
+      for(const p of items){
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="thumb"><img alt="${p.name}" loading="lazy" src="${p.img}"></div>
+          <div class="info">
+            <h3 class="title">${p.name}</h3>
+            <p class="desc">${p.desc}</p>
+            <div class="priceRow">
+              <span class="price">${formatCurrency(p.price)}</span>
+              <button class="btn primary" data-id="${p.id}">Add to cart</button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      }
+    }
+
+    // -------- Cart --------
+    function openCart(){ document.getElementById('drawer').classList.add('open'); document.getElementById('drawer').setAttribute('aria-hidden','false'); }
+    function closeCart(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('drawer').setAttribute('aria-hidden','true'); }
+
+    function addToCart(id){
+      const found = state.cart.find(i=>i.id===id);
+      if(found) found.qty += 1; else state.cart.push({id, qty:1});
+      saveCart();
+      renderCart();
+    }
+
+    function removeFromCart(id){
+      state.cart = state.cart.filter(i=>i.id!==id);
+      saveCart();
+      renderCart();
+    }
+
+    function changeQty(id, delta){
+      const item = state.cart.find(i=>i.id===id);
+      if(!item) return;
+      item.qty += delta;
+      if(item.qty<=0) return removeFromCart(id);
+      saveCart();
+      renderCart();
+    }
+
+    function renderCart(){
+      const wrap = document.getElementById('cartItems');
+      wrap.innerHTML = '';
+      if(state.cart.length===0){
+        wrap.innerHTML = `<div class="empty">Your cart is empty.</div>`;
+        document.getElementById('subtotal').textContent = formatCurrency(0);
+        return;
+      }
+      let subtotal = 0;
+      for(const line of state.cart){
+        const p = PRODUCTS.find(x=>x.id===line.id);
+        if(!p) continue;
+        const lineTotal = p.price * line.qty; subtotal += lineTotal;
+        const el = document.createElement('div');
+        el.className = 'line';
+        el.innerHTML = `
+          <img src="${p.img}" alt="${p.name}">
+          <div style="flex:1">
+            <div style="display:flex; justify-content:space-between; gap:8px">
+              <strong>${p.name}</strong>
+              <button title="Remove" class="btn ghost" data-remove="${p.id}">✕</button>
+            </div>
+            <div class="row" style="justify-content:space-between; margin-top:6px">
+              <div class="qty">
+                <button data-dec="${p.id}">−</button>
+                <span>${line.qty}</span>
+                <button data-inc="${p.id}">+</button>
+              </div>
+              <strong>${formatCurrency(lineTotal)}</strong>
+            </div>
+          </div>
+        `;
+        wrap.appendChild(el);
+      }
+      document.getElementById('subtotal').textContent = formatCurrency(subtotal);
+    }
+
+    // -------- Events --------
+    document.addEventListener('click', (e)=>{
+      const addBtn = e.target.closest('button.btn.primary[data-id]');
+      if(addBtn){ addToCart(Number(addBtn.dataset.id)); }
+
+      const rm = e.target.closest('button[data-remove]');
+      if(rm){ removeFromCart(Number(rm.dataset.remove)); }
+
+      const inc = e.target.closest('button[data-inc]');
+      if(inc){ changeQty(Number(inc.dataset.inc), +1); }
+
+      const dec = e.target.closest('button[data-dec]');
+      if(dec){ changeQty(Number(dec.dataset.dec), -1); }
+    });
+
+    document.getElementById('q').addEventListener('input', (e)=>{ state.q = e.target.value.trim().toLowerCase(); render(); });
+    document.getElementById('cat').addEventListener('change', (e)=>{ state.cat = e.target.value; render(); });
+    document.getElementById('sort').addEventListener('change', (e)=>{ state.sort = e.target.value; render(); });
+
+    document.getElementById('cartBtn').addEventListener('click', ()=>{ openCart(); renderCart(); });
+    document.getElementById('closeCart').addEventListener('click', closeCart);
+    document.getElementById('dim').addEventListener('click', closeCart);
+    document.getElementById('checkout').addEventListener('click', ()=>{
+      alert('Demo checkout — implement payment (e.g., Stripe) and order API here.');
+    });
+
+    // -------- Init --------
+    document.getElementById('year').textContent = new Date().getFullYear();
+    updateCartCount();
+    render();
+  </script>
+</body>
+</html>
